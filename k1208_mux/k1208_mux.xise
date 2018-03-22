@@ -14,7 +14,12 @@
 
   <version xil_pn:ise_version="14.7" xil_pn:schema_version="2"/>
 
-  <files/>
+  <files>
+    <file xil_pn:name="k1208_mux.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="1"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
+    </file>
+  </files>
 
   <properties>
     <property xil_pn:name="Add I/O Buffers" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -69,8 +74,9 @@
     <property xil_pn:name="I/O Pin Termination" xil_pn:value="Keeper" xil_pn:valueState="default"/>
     <property xil_pn:name="ISim UUT Instance Name" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Implementation Template" xil_pn:value="Optimize Balance" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Top" xil_pn:value="" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="" xil_pn:valueState="default"/>
+    <property xil_pn:name="Implementation Top" xil_pn:value="Architecture|k1208_mux|rtl" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top File" xil_pn:value="k1208_mux.vhd" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/k1208_mux" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Include 'uselib Directive in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include SIMPRIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Include UNISIM Models in Verilog File" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -81,6 +87,9 @@
     <property xil_pn:name="Keep Hierarchy" xil_pn:value="No" xil_pn:valueState="default"/>
     <property xil_pn:name="Keep Hierarchy CPLD" xil_pn:value="Yes" xil_pn:valueState="default"/>
     <property xil_pn:name="Language" xil_pn:value="VHDL" xil_pn:valueState="default"/>
+    <property xil_pn:name="Last Applied Goal" xil_pn:value="Balanced" xil_pn:valueState="default"/>
+    <property xil_pn:name="Last Applied Strategy" xil_pn:value="Xilinx Default (unlocked)" xil_pn:valueState="default"/>
+    <property xil_pn:name="Last Unlock Status" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Launch SDK after Export" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Library for Verilog Sources" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Load glbl" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -112,15 +121,15 @@
     <property xil_pn:name="Other XPWR Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Other XST Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Extended Identifiers" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Output File Name" xil_pn:value="" xil_pn:valueState="default"/>
+    <property xil_pn:name="Output File Name" xil_pn:value="k1208_mux" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Slew Rate" xil_pn:value="Fast" xil_pn:valueState="default"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Package" xil_pn:value="VQ44" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Port to be used" xil_pn:value="Auto - default" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="_map.vhd" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="_timesim.vhd" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="_synthesis.vhd" xil_pn:valueState="default"/>
-    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="_translate.vhd" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Map Simulation Model Name" xil_pn:value="k1208_mux_map.vhd" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="k1208_mux_timesim.vhd" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Synthesis Simulation Model Name" xil_pn:value="k1208_mux_synthesis.vhd" xil_pn:valueState="default"/>
+    <property xil_pn:name="Post Translate Simulation Model Name" xil_pn:value="k1208_mux_translate.vhd" xil_pn:valueState="default"/>
     <property xil_pn:name="Preferred Language" xil_pn:value="VHDL" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Preserve Unused Inputs" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Produce Verbose Report" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -129,7 +138,7 @@
     <property xil_pn:name="Regenerate Core" xil_pn:value="Under Current Project Setting" xil_pn:valueState="default"/>
     <property xil_pn:name="Rename Design Instance in Testbench File to" xil_pn:value="UUT" xil_pn:valueState="default"/>
     <property xil_pn:name="Rename Top Level Architecture To" xil_pn:value="Structure" xil_pn:valueState="default"/>
-    <property xil_pn:name="Rename Top Level Entity to" xil_pn:value="" xil_pn:valueState="default"/>
+    <property xil_pn:name="Rename Top Level Entity to" xil_pn:value="k1208_mux" xil_pn:valueState="default"/>
     <property xil_pn:name="Rename Top Level Module To" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Reset On Configuration Pulse Width" xil_pn:value="100" xil_pn:valueState="default"/>
     <property xil_pn:name="Resource Sharing" xil_pn:value="true" xil_pn:valueState="default"/>
