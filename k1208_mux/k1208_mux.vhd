@@ -23,18 +23,20 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity k1208_mux is
 port (
-	CLKCPU		: in 		std_logic;
-	JUMPER		: in		std_logic;
-	RAM_MUX	: in		std_logic;
-	A					: in		std_logic_vector (19 downto 3);
-	RAM_A			: out		std_logic_vector (9 downto 2);
-	IPL				: out		std_logic_vector (2 downto 0)
+	CLKCPU		:	in 		std_logic;
+	JUMPER		:	in		std_logic;
+	RAM_MUX		:	in		std_logic;
+	A			:	in		std_logic_vector (19 downto 3);
+	RAM_A		:	out		std_logic_vector (9 downto 2);
+	IPL			:	out		std_logic_vector (2 downto 0)
 	);
 end entity;
 
 architecture rtl of k1208_mux is
 begin
-	RAM_A <= (others => '0');
-	IPL <= (others => 'Z');
+	IPL <= (others => 'Z');		-- not used
+	
+	-- This CPLD is just a simple address mux for RAS/CAS
+	RAM_A <= A(19 downto 12) when RAM_MUX=1 else A(11 downto 4);
 end architecture;
 

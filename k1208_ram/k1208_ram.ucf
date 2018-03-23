@@ -1,0 +1,61 @@
+NET "CLKCPU"	LOC="16";
+NET "CLKCPU"	BUFG=CLK;
+NET "CLKCPU"	TNM_NET="CLKCPU";
+
+NET "nRESET"	LOC="62";
+
+NET "A<0>"		LOC="36";
+NET "A<1>"		LOC="35";
+NET "A<2>"		LOC="8";
+NET "A<3>"		LOC="6";
+NET "A<4>"		LOC="7";
+NET "A<5>"		LOC="34";
+NET "A<6>"		LOC="33";
+
+NET "A<12>"		LOC="32";
+NET "A<13>"		LOC="31";
+
+NET "A<15>"		LOC="25";
+NET "A<16>"		LOC="27";
+NET "A<17>"		LOC="24";
+NET "A<18>"		LOC="23";
+NET "A<19>"		LOC="22";
+NET "A<20>"		LOC="20";
+NET "A<21>"		LOC="19";
+NET "A<22>"		LOC="18";
+NET "A<23>"		LOC="17";
+
+NET "D<24>"		LOC="59";
+NET "D<25>"		LOC="58";
+NET "D<26>"		LOC="60";
+NET "D<27>"		LOC="61";
+NET "D<28>"		LOC="11";
+NET "D<29>"		LOC="12";
+NET "D<30>"		LOC="13";
+NET "D<31>"		LOC="15";
+
+NET "nDS"		LOC="42";
+NET "nAS"		LOC="43";
+NET "R_nW"		LOC="44";
+NET "SIZ<0>"	LOC="40";
+NET "SIZ<1>"	LOC="39";
+NET "nDSACK<0>"	LOC="45";
+NET "nDSACK<1>" LOC="46";
+NET "nINT2"		LOC="47";
+NET "nOVR"		LOC="4";
+
+NET "RAM_MUX"	LOC="38";
+NET "RAM_A<0>"	LOC="50";
+NET "RAM_A<1>"	LOC="49";
+NET "RAM_nOE"	LOC="52";
+NET "RAM_nRAS<0>"	LOC="51";
+NET "RAM_nRAS<1>"	LOC="48";
+NET "RAM_nCAS<0>"	LOC="2";
+NET "RAM_nCAS<1>"	LOC="1";
+NET "RAM_nCAS<2>"	LOC="57";
+NET "RAM_nCAS<3>"	LOC="56";
+
+NET "SPI_SCLK" 	LOC="10";
+NET "SPI_MOSI"	LOC="64";
+NET "SPI_MISO"	LOC="9";
+NET "SPI_nCS"	LOC="63";
