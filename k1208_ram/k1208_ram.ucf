@@ -4,26 +4,26 @@ NET "CLKCPU"	TNM_NET="CLKCPU";
 
 NET "nRESET"	LOC="62";
 
-NET "A<0>"		LOC="36";
-NET "A<1>"		LOC="35";
-NET "A<2>"		LOC="8";
-NET "A<3>"		LOC="6";
-NET "A<4>"		LOC="7";
-NET "A<5>"		LOC="34";
-NET "A<6>"		LOC="33";
+NET "AL<0>"		LOC="36";
+NET "AL<1>"		LOC="35";
+NET "AL<2>"		LOC="8";
+NET "AL<3>"		LOC="6";
+NET "AL<4>"		LOC="7";
+NET "AL<5>"		LOC="34";
+NET "AL<6>"		LOC="33";
 
-NET "A<12>"		LOC="32";
-NET "A<13>"		LOC="31";
+NET "AM<12>"	LOC="32";
+NET "AM<13>"	LOC="31";
 
-NET "A<15>"		LOC="25";
-NET "A<16>"		LOC="27";
-NET "A<17>"		LOC="24";
-NET "A<18>"		LOC="23";
-NET "A<19>"		LOC="22";
-NET "A<20>"		LOC="20";
-NET "A<21>"		LOC="19";
-NET "A<22>"		LOC="18";
-NET "A<23>"		LOC="17";
+NET "AH<15>"	LOC="25";
+NET "AH<16>"	LOC="27";
+NET "AH<17>"	LOC="24";
+NET "AH<18>"	LOC="23";
+NET "AH<19>"	LOC="22";
+NET "AH<20>"	LOC="20";
+NET "AH<21>"	LOC="19";
+NET "AH<22>"	LOC="18";
+NET "AH<23>"	LOC="17";
 
 NET "D<24>"		LOC="59";
 NET "D<25>"		LOC="58";

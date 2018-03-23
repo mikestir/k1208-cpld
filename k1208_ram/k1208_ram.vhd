@@ -27,7 +27,11 @@ port (
 	nRESET		:	in		std_logic;
 	
 	-- CPU bus
-	A			:	in		std_logic_vector(23 downto 0);
+	-- Address bus has some holes in it so we concatenate the parts explicitly
+	-- to avoid undefined behaviour of the unmapped bits
+	AH			:	in		std_logic_vector(23 downto 15);
+	AM			:	in		std_logic_vector(13 downto 12);
+	AL			:	in		std_logic_vector(6 downto 0);
 	D			:	inout	std_logic_vector(31 downto 24);
 	nDS			:	in		std_logic;
 	nAS			:	in		std_logic;
@@ -53,7 +57,24 @@ port (
 end entity;
 
 architecture rtl of k1208_ram is
+signal A	:	std_logic_vector(23 downto 0);
 begin
+	-- Derive full address bus
+	A <= AH & "0" & AM & "00000" & AL;
 
+	SPI_SCLK <= '0';
+	SPI_MOSI <= '0';
+	SPI_nCS <= '0';
+	RAM_MUX <= '0';
+	RAM_A <= (others => '0');
+	RAM_nOE <= '1';
+	RAM_nRAS <= (others => '1');
+	RAM_nCAS <= (others => '1');
+	
+	nDSACK <= (others => 'Z');
+	nINT2 <= 'Z';
+	
+	D <= (others => 'Z');
+	
 end architecture;
 
