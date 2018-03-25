@@ -80,6 +80,25 @@ port (
 	);
 end component;
 
+component fastmem is
+port (
+	CLOCK		:	in		std_logic;
+	nRESET		:	in		std_logic;
+	
+	R_nW		:	in		std_logic;
+	nAS			:	in		std_logic;
+	A			:	in		std_logic_vector(23 downto 0);
+	SIZE		:	in		std_logic_vector(1 downto 0);
+
+	RAM_SEL		:	out		std_logic;
+	ROW_MUX		:	out		std_logic; -- selects row address
+	RAM_A		:	out		std_logic_vector(1 downto 0);
+	nOE			:	out		std_logic;
+	nRAS		:	out		std_logic_vector(1 downto 0);
+	nCAS		:	out		std_logic_vector(3 downto 0)
+	);
+end component;
+
 signal a			:	std_logic_vector(23 downto 0);
 signal d_in			:	std_logic_vector(7 downto 0);
 signal d_out_z2_ram	:	std_logic_vector(3 downto 0);
@@ -92,18 +111,20 @@ signal ram_sel		:	std_logic; -- 200000-A00000
 signal autoconf_sel	:	std_logic; -- E80000-E90000
 signal io_sel		:	std_logic; -- E90000-EA0000
 signal addr_valid	:	std_logic;
+
+-- Auto config
 signal config_out	:	std_logic_vector(1 downto 0);
 begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
 		generic map (
-			Z2_TYPE => X"c0",
+			Z2_TYPE => X"e0",
 			Z2_FLAGS => X"c0"
 		)
 		port map (
 			CLKCPU, nRESET,
 			'1', config_out(0),
-			wr, autoconf_sel, a(6 downto 0), d_in(7 downto 4), d_out_z2_ram
+			autoconf_sel, wr, a(6 downto 0), d_in(7 downto 4), d_out_z2_ram
 		);
 	
 	-- Instantiate autoconfig instance for IO function
@@ -115,7 +136,15 @@ begin
 		port map (
 			CLKCPU, nRESET,
 			config_out(0), config_out(1),
-			wr, autoconf_sel, a(6 downto 0), d_in(7 downto 4), d_out_z2_io
+			autoconf_sel, wr, a(6 downto 0), d_in(7 downto 4), d_out_z2_io
+		);
+		
+	-- Instantiate RAM controller
+	fastmem_inst: fastmem
+		port map (
+			CLKCPU, nRESET,
+			R_nW, nAS, A, SIZ,
+			ram_sel, RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
 	
 	-- Derive full address bus with holes filled
@@ -133,8 +162,10 @@ begin
 	addr_valid <= nRESET and not nAS;
 	autoconf_sel <= '1' when A(23 downto 16)=X"E8" and addr_valid='1' else '0';
 	io_sel <= '1' when A(23 downto 16)=X"E9" and addr_valid='1' else '0';
-	nDSACK(0) <= '0' when (autoconf_sel='1' or io_sel='1') else 'Z';
-	nDSACK(1) <= 'Z';
+	
+	-- nDSACK="10" for 8-bit cycles (IO) and "00" for 32-bit cycles (RAM)
+	nDSACK(0) <= '0' when autoconf_sel='1' or io_sel='1' or ram_sel='1' else 'Z';
+	nDSACK(1) <= '0' when ram_sel='1' else 'Z';
 
 	-- /OVR needs to be asserted prior to the CPU asserting /AS
 	-- (see http://www.ianstedman.co.uk/downloads/A1200FuncSpec.txt)
@@ -149,12 +180,6 @@ begin
 	SPI_SCLK <= '0';
 	SPI_MOSI <= '0';
 	SPI_nCS <= '0';
-	
-	RAM_MUX <= '0';
-	RAM_A <= (others => '0');
-	RAM_nOE <= '1';
-	RAM_nRAS <= (others => '1');
-	RAM_nCAS <= (others => '1');
 	
 end architecture;
 
