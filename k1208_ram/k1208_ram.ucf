@@ -39,8 +39,10 @@ NET "nAS"		LOC="43";
 NET "R_nW"		LOC="44";
 NET "SIZ<0>"	LOC="40";
 NET "SIZ<1>"	LOC="39";
-NET "nDSACK<0>"	LOC="45";
-NET "nDSACK<1>" LOC="46";
+# DSACK nets are name reversed on the K1208 board. These assignments give the correct
+# connection relative to the CPU.
+NET "nDSACK<0>"	LOC="46";
+NET "nDSACK<1>" LOC="45";
 NET "nINT2"		LOC="47";
 NET "nOVR"		LOC="4";
 

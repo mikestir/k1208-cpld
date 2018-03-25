@@ -39,7 +39,7 @@ port (
 	SIZ			:	in		std_logic_vector(1 downto 0);
 	nDSACK		:	out		std_logic_vector(1 downto 0);
 	nINT2		:	out		std_logic;
-	nOVR		:	in		std_logic;
+	nOVR		:	out		std_logic;
 	
 	-- RAM
 	RAM_MUX		:	out		std_logic;
@@ -57,24 +57,104 @@ port (
 end entity;
 
 architecture rtl of k1208_ram is
-signal A	:	std_logic_vector(23 downto 0);
-begin
-	-- Derive full address bus
-	A <= AH & "0" & AM & "00000" & AL;
 
+component autoconfig is
+generic (
+	Z2_TYPE		:	std_logic_vector(7 downto 0)	:= X"C0";
+	Z2_FLAGS	:	std_logic_vector(7 downto 0)	:= X"80";
+	Z2_PROD		:	integer	:= 0;
+	Z2_MFG		:	integer	:= 12345
+	);
+port (
+	CLOCK		:	in	std_logic;
+	nRESET		:	in	std_logic;
+	
+	CONFIG_IN	:	in	std_logic;
+	CONFIG_OUT	:	out	std_logic;
+	
+	ENABLE		:	in	std_logic;
+	WR			:	in	std_logic;
+	A			:	in std_logic_vector(6 downto 0);
+	D_IN		:	in	std_logic_vector(3 downto 0);
+	D_OUT		:	out	std_logic_vector(3 downto 0)
+	);
+end component;
+
+signal a			:	std_logic_vector(23 downto 0);
+signal d_in			:	std_logic_vector(7 downto 0);
+signal d_out_z2_ram	:	std_logic_vector(3 downto 0);
+signal d_out_z2_io	:	std_logic_vector(3 downto 0);
+signal rd			:	std_logic;
+signal wr			:	std_logic;
+
+-- Chip selects
+signal ram_sel		:	std_logic; -- 200000-A00000
+signal autoconf_sel	:	std_logic; -- E80000-E90000
+signal io_sel		:	std_logic; -- E90000-EA0000
+signal addr_valid	:	std_logic;
+signal config_out	:	std_logic_vector(1 downto 0);
+begin
+	-- Instantiate autoconfig instance for RAM function
+	autoconfig_ram: autoconfig
+		generic map (
+			Z2_TYPE => X"c0",
+			Z2_FLAGS => X"c0"
+		)
+		port map (
+			CLKCPU, nRESET,
+			'1', config_out(0),
+			wr, autoconf_sel, a(6 downto 0), d_in(7 downto 4), d_out_z2_ram
+		);
+	
+	-- Instantiate autoconfig instance for IO function
+	autoconfig_io: autoconfig
+		generic map (
+			Z2_TYPE => X"c1",
+			Z2_FLAGS => X"40"
+		)
+		port map (
+			CLKCPU, nRESET,
+			config_out(0), config_out(1),
+			wr, autoconf_sel, a(6 downto 0), d_in(7 downto 4), d_out_z2_io
+		);
+	
+	-- Derive full address bus with holes filled
+	a <= AH & "0" & AM & "00000" & AL;
+	
+	-- Route data bus
+	rd <= R_nW and not nDS;
+	wr <= not R_nW and not nDS;
+	d_in <= D;
+	D <= d_out_z2_ram & "1111" when rd='1' and autoconf_sel='1' and config_out="00" else
+		d_out_z2_io & "1111" when rd='1' and autoconf_sel='1' and config_out="01" else
+		(others => 'Z');
+	
+	-- Decode function selects
+	addr_valid <= nRESET and not nAS;
+	autoconf_sel <= '1' when A(23 downto 16)=X"E8" and addr_valid='1' else '0';
+	io_sel <= '1' when A(23 downto 16)=X"E9" and addr_valid='1' else '0';
+	nDSACK(0) <= '0' when (autoconf_sel='1' or io_sel='1') else 'Z';
+	nDSACK(1) <= 'Z';
+
+	-- /OVR needs to be asserted prior to the CPU asserting /AS
+	-- (see http://www.ianstedman.co.uk/downloads/A1200FuncSpec.txt)
+	-- But maybe it isn't needed in expansion card space as it seems
+	-- to work fine without it.
+	nOVR <= 'Z';
+	
+	-- Unused outputs
+	nINT2 <= 'Z';
+	
+	-- Unused SPI
 	SPI_SCLK <= '0';
 	SPI_MOSI <= '0';
 	SPI_nCS <= '0';
+	
 	RAM_MUX <= '0';
 	RAM_A <= (others => '0');
 	RAM_nOE <= '1';
 	RAM_nRAS <= (others => '1');
 	RAM_nCAS <= (others => '1');
-	
-	nDSACK <= (others => 'Z');
-	nINT2 <= 'Z';
-	
-	D <= (others => 'Z');
 	
 end architecture;
 

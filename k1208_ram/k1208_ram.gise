@@ -21,8 +21,115 @@
 
   <sourceproject xmlns="http://www.xilinx.com/XMLSchema" xil_pn:fileType="FILE_XISE" xil_pn:name="k1208_ram.xise"/>
 
-  <files xmlns="http://www.xilinx.com/XMLSchema"/>
+  <files xmlns="http://www.xilinx.com/XMLSchema">
+    <file xil_pn:fileType="FILE_DIRECTORY" xil_pn:name="_ngo"/>
+    <file xil_pn:fileType="FILE_XMSGS" xil_pn:name="_xmsgs/ngdbuild.xmsgs"/>
+    <file xil_pn:fileType="FILE_XMSGS" xil_pn:name="_xmsgs/xst.xmsgs"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGDBUILD_LOG" xil_pn:name="k1208_ram.bld"/>
+    <file xil_pn:fileType="FILE_CMD_LOG" xil_pn:name="k1208_ram.cmd_log"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_GYD" xil_pn:name="k1208_ram.gyd"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_JEDEC" xil_pn:name="k1208_ram.jed"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_LSO" xil_pn:name="k1208_ram.lso"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_MFD" xil_pn:name="k1208_ram.mfd"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGA" xil_pn:name="k1208_ram.nga"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="k1208_ram.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGD" xil_pn:name="k1208_ram.ngd"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGR" xil_pn:name="k1208_ram.ngr"/>
+    <file xil_pn:fileType="FILE_PAD_MISC" xil_pn:name="k1208_ram.pad"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_PNX" xil_pn:name="k1208_ram.pnx"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST_PROJECT" xil_pn:name="k1208_ram.prj"/>
+    <file xil_pn:fileType="FILE_FITTER_REPORT" xil_pn:name="k1208_ram.rpt"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST_STX" xil_pn:name="k1208_ram.stx"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST_REPORT" xil_pn:name="k1208_ram.syr"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_VM6" xil_pn:name="k1208_ram.vm6"/>
+    <file xil_pn:fileType="FILE_FITTER_REPORT" xil_pn:name="k1208_ram.xml"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST" xil_pn:name="k1208_ram.xst"/>
+    <file xil_pn:fileType="FILE_FITTER_REPORT" xil_pn:name="k1208_ram_build.xml"/>
+    <file xil_pn:fileType="FILE_HTML" xil_pn:name="k1208_ram_envsettings.html"/>
+    <file xil_pn:fileType="FILE_DIRECTORY" xil_pn:name="k1208_ram_html"/>
+    <file xil_pn:fileType="FILE_XRPT" xil_pn:name="k1208_ram_ngdbuild.xrpt"/>
+    <file xil_pn:fileType="FILE_PAD_EXCEL_REPORT" xil_pn:name="k1208_ram_pad.csv"/>
+    <file xil_pn:fileType="FILE_HTML" xil_pn:name="k1208_ram_summary.html"/>
+    <file xil_pn:fileType="FILE_XST_PROJECT" xil_pn:name="k1208_ram_vhdl.prj"/>
+    <file xil_pn:fileType="FILE_XRPT" xil_pn:name="k1208_ram_xst.xrpt"/>
+    <file xil_pn:fileType="FILE_FITTER_REPORT" xil_pn:name="webtalk_pn.xml"/>
+    <file xil_pn:fileType="FILE_DIRECTORY" xil_pn:name="xlnx_auto_0_xdb"/>
+    <file xil_pn:fileType="FILE_DIRECTORY" xil_pn:name="xst"/>
+  </files>
 
-  <transforms xmlns="http://www.xilinx.com/XMLSchema"/>
+  <transforms xmlns="http://www.xilinx.com/XMLSchema">
+    <transform xil_pn:end_ts="1521798471" xil_pn:name="TRAN_copyInitialToXSTAbstractSynthesis" xil_pn:start_ts="1521798471">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="ReadyToRun"/>
+    </transform>
+    <transform xil_pn:end_ts="1521798471" xil_pn:name="TRAN_schematicsToHdl" xil_pn:prop_ck="-3357895052079491747" xil_pn:start_ts="1521798471">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="ReadyToRun"/>
+    </transform>
+    <transform xil_pn:end_ts="1521801848" xil_pn:in_ck="-3447809758649758683" xil_pn:name="TRANEXT_xstsynthesize_xc9500xl" xil_pn:prop_ck="7978500877671698246" xil_pn:start_ts="1521801842">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="WarningsGenerated"/>
+      <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForInputs"/>
+      <status xil_pn:value="InputChanged"/>
+      <outfile xil_pn:name="_xmsgs/xst.xmsgs"/>
+      <outfile xil_pn:name="k1208_ram.lso"/>
+      <outfile xil_pn:name="k1208_ram.ngc"/>
+      <outfile xil_pn:name="k1208_ram.ngr"/>
+      <outfile xil_pn:name="k1208_ram.prj"/>
+      <outfile xil_pn:name="k1208_ram.stx"/>
+      <outfile xil_pn:name="k1208_ram.syr"/>
+      <outfile xil_pn:name="k1208_ram.xst"/>
+      <outfile xil_pn:name="k1208_ram_xst.xrpt"/>
+      <outfile xil_pn:name="webtalk_pn.xml"/>
+      <outfile xil_pn:name="xst"/>
+    </transform>
+    <transform xil_pn:end_ts="1521800696" xil_pn:in_ck="-3447809758649759935" xil_pn:name="TRAN_compileBCD2" xil_pn:prop_ck="8791355539724875810" xil_pn:start_ts="1521800696">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="ReadyToRun"/>
+    </transform>
+    <transform xil_pn:end_ts="1521801851" xil_pn:in_ck="712444549331390748" xil_pn:name="TRAN_ngdbuild" xil_pn:prop_ck="-2081320714713457669" xil_pn:start_ts="1521801848">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="WarningsGenerated"/>
+      <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
+      <outfile xil_pn:name="_ngo"/>
+      <outfile xil_pn:name="_xmsgs/ngdbuild.xmsgs"/>
+      <outfile xil_pn:name="k1208_ram.bld"/>
+      <outfile xil_pn:name="k1208_ram.ngd"/>
+      <outfile xil_pn:name="k1208_ram_ngdbuild.xrpt"/>
+    </transform>
+    <transform xil_pn:end_ts="1521801856" xil_pn:in_ck="-3447809758649767428" xil_pn:name="TRANEXT_vm6File_xc9500xl" xil_pn:prop_ck="2840407373479830322" xil_pn:start_ts="1521801851">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="WarningsGenerated"/>
+      <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
+      <outfile xil_pn:name="k1208_ram.gyd"/>
+      <outfile xil_pn:name="k1208_ram.mfd"/>
+      <outfile xil_pn:name="k1208_ram.nga"/>
+      <outfile xil_pn:name="k1208_ram.pad"/>
+      <outfile xil_pn:name="k1208_ram.pnx"/>
+      <outfile xil_pn:name="k1208_ram.rpt"/>
+      <outfile xil_pn:name="k1208_ram.vm6"/>
+      <outfile xil_pn:name="k1208_ram.xml"/>
+      <outfile xil_pn:name="k1208_ram_build.xml"/>
+      <outfile xil_pn:name="k1208_ram_html"/>
+      <outfile xil_pn:name="k1208_ram_pad.csv"/>
+    </transform>
+    <transform xil_pn:end_ts="1521801858" xil_pn:in_ck="-3447809758649758564" xil_pn:name="TRANEXT_crtProg_xc9500" xil_pn:prop_ck="-6294026017969277533" xil_pn:start_ts="1521801856">
+      <status xil_pn:value="SuccessfullyRun"/>
+      <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
+      <outfile xil_pn:name="k1208_ram.jed"/>
+    </transform>
+    <transform xil_pn:name="TRAN_timRpt">
+      <status xil_pn:value="AbortedRun"/>
+      <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForInputs"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
+      <status xil_pn:value="InputAdded"/>
+      <status xil_pn:value="InputChanged"/>
+    </transform>
+  </transforms>
 
 </generated_project>
