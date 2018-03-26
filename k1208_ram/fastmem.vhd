@@ -22,6 +22,10 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity fastmem is
+generic(
+	-- CPU ticks between refresh cycles
+	REFRESH_INTERVAL	:	positive	:= 200 - 1
+	);
 port (
 	CLOCK		:	in		std_logic;
 	nRESET		:	in		std_logic;
@@ -31,7 +35,9 @@ port (
 	A			:	in		std_logic_vector(23 downto 0);
 	SIZE		:	in		std_logic_vector(1 downto 0);
 
-	RAM_SEL		:	out		std_logic;
+	SELECTED	:	out		std_logic;	-- RAM region is addressed (async)
+	READY		:	out		std_logic;	-- RAM is ready (sync)
+
 	ROW_MUX		:	out		std_logic; -- selects row address
 	RAM_A		:	out		std_logic_vector(1 downto 0);
 	nOE			:	out		std_logic;
@@ -41,14 +47,16 @@ port (
 end entity;
 
 architecture rtl of fastmem is
-type state_t is (Idle, RASState, CASState);
+type state_t is (Idle, RASState, CASState, CBR1, CBR2);
 signal state		:		state_t;
 signal addr_valid	:		std_logic;
-signal addr_valid_reg	:	std_logic;
 signal bank_sel		:		std_logic_vector(3 downto 0);
 signal chip_sel		:		std_logic_vector(1 downto 0);
+signal ram_sel		:		std_logic;
 signal byte_sel		:		std_logic_vector(3 downto 0);
 signal row_enable	:		std_logic;
+signal rcounter		:		unsigned(7 downto 0);
+signal refresh_req	:		std_logic;
 begin
 	-- Address decoding
 	addr_valid <= nRESET and not nAS;
@@ -58,7 +66,8 @@ begin
 	bank_sel(3) <= '1' when A(23 downto 21)="100" and addr_valid='1' else '0';
 	chip_sel(0) <= bank_sel(0) or bank_sel(1);
 	chip_sel(1) <= bank_sel(2) or bank_sel(3);
-	RAM_SEL <= bank_sel(0) or bank_sel(1) or bank_sel(2) or bank_sel(3);
+	ram_sel <= chip_sel(0) or chip_sel(1);
+	SELECTED <= ram_sel;
 	
 	-- Byte lane decoding (see table 5-7 in 68020 user guide)
 	byte_sel(3) <= not A(1) and not A(0);
@@ -70,7 +79,6 @@ begin
 	RAM_A <= A(21 downto 20) when row_enable='1' else A(3 downto 2);
 	ROW_MUX <= row_enable;
 
-	
 	-- RAM timing (synchronous implementation)
 	-- CPU bus cycle states are numbered S0-S5
 	-- CPUCLK   H  L  H  L  H  L
@@ -86,22 +94,34 @@ begin
 	process(CLOCK, nRESET)
 	begin
 		if nRESET = '0' then
-			addr_valid_reg <= '0';
 			state <= Idle;
 			nRAS <= (others => '1');
 			nCAS <= (others => '1');
 			nOE <= '1';
+			READY <= '0';
+			rcounter <= (others => '0');
+			refresh_req <= '0';
 		elsif rising_edge(CLOCK) then
-			-- Register address strobe for edge detection
-			addr_valid_reg <= addr_valid;
+			rcounter <= rcounter + 1;
+			
+			-- Trigger per-row CBR refresh
+			if rcounter = REFRESH_INTERVAL then
+				rcounter <= (others => '0');
+				refresh_req <= '1';
+			end if;
 			
 			case state is
 				when Idle =>
-					if addr_valid='1' and addr_valid_reg='0' then
-						-- Start of S2
-						-- Assert RAS for selected chip and assert OE for read cycles
+					if refresh_req = '1' then
+						-- Insert a refresh cycle
+						nCAS <= (others => '0');
+						refresh_req <= '0';
+						state <= CBR1;
+					elsif addr_valid='1' and ram_sel='1' then
+						-- Assert RAS for selected chip and OE for read cycles
 						nRAS <= not chip_sel;
-						nOE <= not ((chip_sel(0) or chip_sel(1)) and R_nW);
+						nOE <= not R_nW;
+						READY <= '1';
 						state <= RASState;
 					end if;
 				when RASState =>
@@ -115,6 +135,14 @@ begin
 					nRAS <= (others => '1');
 					nCAS <= (others => '1');
 					nOE <= '1';
+					READY <= '0';
+					state <= Idle;
+				when CBR1 =>
+					nRAS <= (others => '0');
+					state <= CBR2;
+				when CBR2 =>
+					nRAS <= (others => '1');
+					nCAS <= (others => '1');
 					state <= Idle;
 				when others =>
 					null;
@@ -128,7 +156,13 @@ begin
 		if nRESET = '0' then
 			row_enable <= '1';
 		elsif falling_edge(CLOCK) then
-			row_enable <= chip_sel(0) nor chip_sel(1);
+			if state=RASState then
+				-- CAS is next - output column address
+				row_enable <= '0';
+			else
+				-- Output row address by default
+				row_enable <= '1';
+			end if;
 		end if;
 	end process;
 	

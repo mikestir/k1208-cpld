@@ -90,7 +90,9 @@ port (
 	A			:	in		std_logic_vector(23 downto 0);
 	SIZE		:	in		std_logic_vector(1 downto 0);
 
-	RAM_SEL		:	out		std_logic;
+	SELECTED	:	out		std_logic;	-- RAM region is addressed (async)
+	READY		:	out		std_logic;	-- RAM is ready (sync)
+
 	ROW_MUX		:	out		std_logic; -- selects row address
 	RAM_A		:	out		std_logic_vector(1 downto 0);
 	nOE			:	out		std_logic;
@@ -107,13 +109,16 @@ signal rd			:	std_logic;
 signal wr			:	std_logic;
 
 -- Chip selects
-signal ram_sel		:	std_logic; -- 200000-A00000
 signal autoconf_sel	:	std_logic; -- E80000-E90000
 signal io_sel		:	std_logic; -- E90000-EA0000
 signal addr_valid	:	std_logic;
 
 -- Auto config
 signal config_out	:	std_logic_vector(1 downto 0);
+
+-- RAM timing
+signal ram_sel		:	std_logic;
+signal ram_ready	:	std_logic;
 begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
@@ -144,7 +149,8 @@ begin
 		port map (
 			CLKCPU, nRESET,
 			R_nW, nAS, A, SIZ,
-			ram_sel, RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
+			ram_sel, ram_ready,
+			RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
 	
 	-- Derive full address bus with holes filled
@@ -164,13 +170,16 @@ begin
 	io_sel <= '1' when A(23 downto 16)=X"E9" and addr_valid='1' else '0';
 	
 	-- nDSACK="10" for 8-bit cycles (IO) and "00" for 32-bit cycles (RAM)
-	nDSACK(0) <= '0' when autoconf_sel='1' or io_sel='1' or ram_sel='1' else 'Z';
-	nDSACK(1) <= '0' when ram_sel='1' else 'Z';
+	nDSACK(0) <= '0' when autoconf_sel='1' or io_sel='1' or ram_ready='1' else 'Z';
+	nDSACK(1) <= '0' when ram_ready='1' else 'Z';
 
 	-- /OVR needs to be asserted prior to the CPU asserting /AS
 	-- (see http://www.ianstedman.co.uk/downloads/A1200FuncSpec.txt)
 	-- But maybe it isn't needed in expansion card space as it seems
 	-- to work fine without it.
+	-- This was tested by inserting dummy delays to hold off DSACK assertion in RAM and
+	-- observing that the machine performance reduced.  Also, not asserting DSACK does cause
+	-- the machine to hang as would be expected.
 	nOVR <= 'Z';
 	
 	-- Unused outputs
