@@ -50,6 +50,7 @@ architecture rtl of fastmem is
 type state_t is (Idle, RASState, CASState, CBR1, CBR2);
 signal state		:		state_t;
 signal addr_valid	:		std_logic;
+signal addr_valid_reg	:	std_logic;
 signal bank_sel		:		std_logic_vector(3 downto 0);
 signal chip_sel		:		std_logic_vector(1 downto 0);
 signal ram_sel		:		std_logic;
@@ -102,6 +103,7 @@ begin
 			READY <= '0';
 			rcounter <= (others => '0');
 			refresh_req <= '0';
+			addr_valid_reg <= '0';
 		elsif rising_edge(CLOCK) then
 			rcounter <= rcounter + 1;
 			
@@ -110,6 +112,8 @@ begin
 				rcounter <= (others => '0');
 				refresh_req <= '1';
 			end if;
+			
+			addr_valid_reg <= addr_valid;
 			
 			case state is
 				when Idle =>
@@ -120,7 +124,8 @@ begin
 					-- it does not seem to affect stability, but this may need to be revisited.
 					-- An improved solution would be to gate RAM /WE via the CPLD rather than
 					-- connecting it directly to R/W.
-					if refresh_req = '1' then
+					--if refresh_req = '1' then
+					if refresh_req = '1' and addr_valid='1' and addr_valid_reg='0' and R_nW='1' then
 						-- Insert a refresh cycle
 						nCAS <= (others => '0');
 						refresh_req <= '0';
