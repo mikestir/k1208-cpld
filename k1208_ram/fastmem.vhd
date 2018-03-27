@@ -62,8 +62,9 @@ begin
 	addr_valid <= nRESET and not nAS;
 	bank_sel(0) <= '1' when A(23 downto 21)="001" and addr_valid='1' else '0';
 	bank_sel(1) <= '1' when A(23 downto 21)="010" and addr_valid='1' else '0';
-	bank_sel(2) <= '1' when A(23 downto 21)="011" and addr_valid='1' else '0';
-	bank_sel(3) <= '1' when A(23 downto 21)="100" and addr_valid='1' else '0';
+	--bank_sel(2) <= '1' when A(23 downto 21)="011" and addr_valid='1' else '0';
+	--bank_sel(3) <= '1' when A(23 downto 21)="100" and addr_valid='1' else '0';
+	bank_sel(3 downto 2) <= "00";
 	chip_sel(0) <= bank_sel(0) or bank_sel(1);
 	chip_sel(1) <= bank_sel(2) or bank_sel(3);
 	ram_sel <= chip_sel(0) or chip_sel(1);
@@ -112,6 +113,13 @@ begin
 			
 			case state is
 				when Idle =>
+					-- *** NOTE ***
+					-- Some (but not all) DRAM datasheets call for /WE to be high
+					-- when /RAS is asserted during a CBR refresh cycle.  We do not
+					-- guarantee this here (which yields a small performance gain), and
+					-- it does not seem to affect stability, but this may need to be revisited.
+					-- An improved solution would be to gate RAM /WE via the CPLD rather than
+					-- connecting it directly to R/W.
 					if refresh_req = '1' then
 						-- Insert a refresh cycle
 						nCAS <= (others => '0');

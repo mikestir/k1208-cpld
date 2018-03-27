@@ -123,7 +123,8 @@ begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
 		generic map (
-			Z2_TYPE => X"e0",
+			--Z2_TYPE => X"e0", -- 8MB
+			Z2_TYPE => X"e7", -- 4MB
 			Z2_FLAGS => X"c0"
 		)
 		port map (
