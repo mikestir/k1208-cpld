@@ -90,6 +90,7 @@ port (
 	A			:	in		std_logic_vector(23 downto 0);
 	SIZE		:	in		std_logic_vector(1 downto 0);
 
+	EIGHT_MEG	:	in		std_logic;  -- enables upper 4MB if asserted
 	SELECTED	:	out		std_logic;	-- RAM region is addressed (async)
 	READY		:	out		std_logic;	-- RAM is ready (sync)
 
@@ -158,7 +159,7 @@ begin
 	-- Instantiate autoconfig instance for IO function
 	autoconfig_io: autoconfig
 		generic map (
-			Z2_TYPE => X"c1",
+			Z2_TYPE => X"c1", -- 64KB
 			Z2_FLAGS => X"40"
 		)
 		port map (
@@ -172,6 +173,7 @@ begin
 		port map (
 			CLKCPU, nRESET,
 			R_nW, nAS, A, SIZ,
+			'0', -- 0 = 4MB, 1 = 8MB
 			ram_sel, ram_ready,
 			RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
@@ -220,6 +222,5 @@ begin
 	
 	-- Unused outputs
 	nINT2 <= 'Z';
-	
 end architecture;
 

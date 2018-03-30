@@ -35,6 +35,7 @@ port (
 	A			:	in		std_logic_vector(23 downto 0);
 	SIZE		:	in		std_logic_vector(1 downto 0);
 
+	EIGHT_MEG	:	in		std_logic;  -- enables upper 4MB if asserted
 	SELECTED	:	out		std_logic;	-- RAM region is addressed (async)
 	READY		:	out		std_logic;	-- RAM is ready (sync)
 
@@ -63,9 +64,8 @@ begin
 	addr_valid <= nRESET and not nAS;
 	bank_sel(0) <= '1' when A(23 downto 21)="001" and addr_valid='1' else '0';
 	bank_sel(1) <= '1' when A(23 downto 21)="010" and addr_valid='1' else '0';
-	--bank_sel(2) <= '1' when A(23 downto 21)="011" and addr_valid='1' else '0';
-	--bank_sel(3) <= '1' when A(23 downto 21)="100" and addr_valid='1' else '0';
-	bank_sel(3 downto 2) <= "00";
+	bank_sel(2) <= '1' when A(23 downto 21)="011" and addr_valid='1' and EIGHT_MEG='1' else '0';
+	bank_sel(3) <= '1' when A(23 downto 21)="100" and addr_valid='1' and EIGHT_MEG='1' else '0';
 	chip_sel(0) <= bank_sel(0) or bank_sel(1);
 	chip_sel(1) <= bank_sel(2) or bank_sel(3);
 	ram_sel <= chip_sel(0) or chip_sel(1);
@@ -113,6 +113,7 @@ begin
 				refresh_req <= '1';
 			end if;
 			
+			-- Register address strobe for edge detection (detect start of machine cycle)
 			addr_valid_reg <= addr_valid;
 			
 			case state is
@@ -125,6 +126,8 @@ begin
 					-- An improved solution would be to gate RAM /WE via the CPLD rather than
 					-- connecting it directly to R/W.
 					--if refresh_req = '1' then
+					-- NOTE2: Disabling the above for stability comparison. This is slower but guarantees
+					-- /WE will be high during refresh.
 					if refresh_req='1' and addr_valid='1' and addr_valid_reg='0' and R_nW='1' then
 						-- Insert a refresh cycle
 						nCAS <= (others => '0');
