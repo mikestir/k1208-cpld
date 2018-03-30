@@ -52,11 +52,10 @@ signal clkdiv_counter	:	unsigned(7 downto 0);
 -- Bit counter
 signal bitcnt	:	unsigned(3 downto 0);
 -- Data
-signal txreg	:	std_logic_vector(7 downto 0);
-signal rxreg	:	std_logic_vector(7 downto 0);
+signal shiftreg	:	std_logic_vector(7 downto 0);
 
 signal clken	:	std_logic;
-signal regmux	:	std_logic_vector(7 downto 0);
+signal read_reg	:	std_logic_vector(7 downto 0);
 
 -- Port signals
 signal mosi		:	std_logic;
@@ -68,27 +67,38 @@ begin
 	SPI_MOSI <= mosi;
 	miso <= SPI_MISO;
 	SPI_SCLK <= clkout;
-	D_OUT <= regmux;
 	
-	-- Read path
+	-- Read mux
 	with "00" & A select
-		regmux <=
+		read_reg <=
 			cs & "00" & cpol & cpha 	when X"00",	-- CR
 			"0000000" & busy			when X"01",	-- SR
-			std_logic_vector(clkdiv)	when X"02", -- CLKDIV
-			rxreg						when X"03", -- DR
-			X"FF"						when others;
+--			std_logic_vector(clkdiv)	when X"02", -- CLKDIV
+			shiftreg					when X"03", -- DR
+			X"00"						when others;
+
+	-- Register data out
+	-- (doing this or not is a balance between product terms and overall macrocell count)
+--	read_cycle: process(CLOCK,nRESET)
+--	begin
+--		if nRESET='0' then
+--			D_OUT <= (others => '0');
+--		elsif rising_edge(CLOCK) then
+--			D_OUT <= read_reg;
+--		end if;
+--	end process;
+	D_OUT <= read_reg;
 
 	-- Write path and IO
-	process(CLOCK, nRESET)
+	write_cycle: process(CLOCK, nRESET)
 	begin
 		if nRESET='0' then
 			-- Default all control registers
 			cpha <= '0';
 			cpol <= '0';
 			cs <= (others => '0');
-			clkdiv <= (others => '0');
-			txreg <= (others => '0');
+--			clkdiv <= (others => '0');
+			shiftreg <= (others => '0');
 			
 			-- Default all state
 			busy <= '0';
@@ -108,10 +118,9 @@ begin
 					
 					clkout <= bitcnt(0) xor cpol;
 					if bitcnt(0)=cpha then
-						mosi <= txreg(7);
-						txreg <= txreg(6 downto 0) & "0";
+						mosi <= shiftreg(7);
 					else
-						rxreg <= rxreg(6 downto 0) & miso;
+						shiftreg <= shiftreg(6 downto 0) & miso;
 					end if;
 				else
 					clkout <= cpol;
@@ -131,12 +140,12 @@ begin
 						null;
 					when X"02" =>
 						-- CLKDIV
-						clkdiv <= unsigned(D_IN);
+--						clkdiv <= unsigned(D_IN);
 					when X"03" =>
 						-- DR
 						if busy='0' then
 							-- Write to txreg initiates transfer
-							txreg <= D_IN;
+							shiftreg <= D_IN;
 							busy <= '1';
 							bitcnt <= (others => '0');
 						end if;
@@ -151,16 +160,18 @@ begin
 	process(CLOCK, nRESET)
 	begin
 		if nRESET='0' then
-			clken <= '0';
-			clkdiv_counter <= (others => '0');
+			clken <= '1';
+--			clken <= '0';
+--			clkdiv_counter <= (others => '0');
 		elsif rising_edge(CLOCK) then
-			clken <= '0';
-			clkdiv_counter <= clkdiv_counter + 1;
-			
-			if clkdiv_counter = clkdiv then
-				clkdiv_counter <= (others => '0');
-				clken <= '1';
-			end if;
+			clken <= '1';
+--			clken <= '0';
+--			clkdiv_counter <= clkdiv_counter + 1;
+--			
+--			if clkdiv_counter = clkdiv then
+--				clkdiv_counter <= (others => '0');
+--				clken <= '1';
+--			end if;
 		end if;
 	end process;
 

@@ -179,16 +179,13 @@ begin
 		);
 		
 	-- Instantiate SPI controller
---	spi_inst: spi
---		port map (
---			CLKCPU, nRESET,
---			io_sel, wr, a(3 downto 2), d_in, d_out_spi,
---			spi_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
---		);
---	SPI_nCS <= spi_ncs_all(0);
-	SPI_SCLK <= '0';
-	SPI_MOSI <= '0';
-	SPI_nCS <= '1';
+	spi_inst: spi
+		port map (
+			CLKCPU, nRESET,
+			io_sel, wr, a(3 downto 2), d_in, d_out_spi,
+			spi_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
+		);
+	SPI_nCS <= spi_ncs_all(0);
 	
 	-- Derive full address bus with holes filled
 	a <= AH & "0" & AM & "00000" & AL;

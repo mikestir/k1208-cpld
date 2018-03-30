@@ -51,20 +51,19 @@ constant z2_mfg_val		:	std_logic_vector(15 downto 0)	:= not std_logic_vector(to_
 
 signal configured		:	std_logic;
 signal selected			:	std_logic;
-signal reg				:	std_logic_vector(3 downto 0);
+signal read_reg			:	std_logic_vector(3 downto 0);
 -- Using the stored base address makes the design too large for the XC9572, but
 -- as long as we don't use it the fitter will optimise it away.
 signal base				:	std_logic_vector(15 downto 0);
 begin
 	selected <= CONFIG_IN and not configured;
 	CONFIG_OUT <= configured;
-	D_OUT <= reg;
 	
 	-- Zorro registers are 16-bits wide in memory so addresses increment in 2s
 	-- 128 bytes are decoded (odd bytes are empty and lower nibbles of even bytes are empty)
 	-- All but the first byte are inverted
 	with "0" & A select
-		reg <=
+		read_reg <=
 			z2_type_val(7 downto 4) when X"00", -- type
 			z2_type_val(3 downto 0) when X"02",
 			z2_prod_val(7 downto 4) when X"04", -- product
@@ -79,6 +78,17 @@ begin
 			z2_mfg_val(3 downto 0) when X"16",
 			--
 			X"F" when others;
+	
+	-- Register data out
+	-- (doing this or not is a balance between product terms and overall macrocell count)
+	read_cycle: process(CLOCK,nRESET)
+	begin
+		if nRESET='0' then
+			D_OUT <= (others => '0');
+		elsif rising_edge(CLOCK) then
+			D_OUT <= read_reg;
+		end if;
+	end process;
 
 	write_cycle: process(CLOCK,nRESET)
 	begin
