@@ -95,7 +95,7 @@ begin
 	-- Data must be stable at the end of S4 (for reads)
 	process(CLOCK, nRESET)
 	begin
-		if nRESET = '0' then
+		if nRESET='0' then
 			state <= Idle;
 			nRAS <= (others => '1');
 			nCAS <= (others => '1');
@@ -125,7 +125,7 @@ begin
 					-- An improved solution would be to gate RAM /WE via the CPLD rather than
 					-- connecting it directly to R/W.
 					--if refresh_req = '1' then
-					if refresh_req = '1' and addr_valid='1' and addr_valid_reg='0' and R_nW='1' then
+					if refresh_req='1' and addr_valid='1' and addr_valid_reg='0' and R_nW='1' then
 						-- Insert a refresh cycle
 						nCAS <= (others => '0');
 						refresh_req <= '0';
@@ -166,7 +166,7 @@ begin
 	-- Delay RAS to next falling edge for row/column select
 	process(CLOCK, nRESET)
 	begin
-		if nRESET = '0' then
+		if nRESET='0' then
 			row_enable <= '1';
 		elsif falling_edge(CLOCK) then
 			if state=RASState then

@@ -49,10 +49,10 @@ port (
 	RAM_nCAS	:	out		std_logic_vector(3 downto 0);
 	
 	-- IO/SPI
+	SPI_nCS		:	out		std_logic;
 	SPI_SCLK	:	out		std_logic;
 	SPI_MOSI	:	out		std_logic;
-	SPI_MISO	:	in		std_logic;
-	SPI_nCS		:	out		std_logic
+	SPI_MISO	:	in		std_logic
 	);
 end entity;
 
@@ -101,10 +101,29 @@ port (
 	);
 end component;
 
+component spi is
+port (
+	CLOCK		:	in		std_logic;
+	nRESET		:	in		std_logic;
+	
+	ENABLE		:	in		std_logic;
+	WR			:	in		std_logic;
+	A			:	in		std_logic_vector(1 downto 0);
+	D_IN		:	in		std_logic_vector(7 downto 0);
+	D_OUT		:	out		std_logic_vector(7 downto 0);
+
+	SPI_nCS		:	out		std_logic_vector(3 downto 0);
+	SPI_SCLK	:	out		std_logic;
+	SPI_MOSI	:	out		std_logic;
+	SPI_MISO	:	in		std_logic
+	);
+end component;
+
 signal a			:	std_logic_vector(23 downto 0);
 signal d_in			:	std_logic_vector(7 downto 0);
 signal d_out_z2_ram	:	std_logic_vector(3 downto 0);
 signal d_out_z2_io	:	std_logic_vector(3 downto 0);
+signal d_out_spi	:	std_logic_vector(7 downto 0);
 signal rd			:	std_logic;
 signal wr			:	std_logic;
 
@@ -119,6 +138,9 @@ signal config_out	:	std_logic_vector(1 downto 0);
 -- RAM timing
 signal ram_sel		:	std_logic;
 signal ram_ready	:	std_logic;
+
+-- SPI
+signal spi_ncs_all	:	std_logic_vector(3 downto 0);
 begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
@@ -153,6 +175,15 @@ begin
 			ram_sel, ram_ready,
 			RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
+		
+	-- Instantiate SPI controller
+	spi_inst: spi
+		port map (
+			CLKCPU, nRESET,
+			io_sel, wr, a(3 downto 2), d_in, d_out_spi,
+			spi_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
+		);
+	SPI_nCS <= spi_ncs_all(0);
 	
 	-- Derive full address bus with holes filled
 	a <= AH & "0" & AM & "00000" & AL;
@@ -163,6 +194,7 @@ begin
 	d_in <= D;
 	D <= d_out_z2_ram & "1111" when rd='1' and autoconf_sel='1' and config_out="00" else
 		d_out_z2_io & "1111" when rd='1' and autoconf_sel='1' and config_out="01" else
+		d_out_spi when rd='1' and io_sel='1' else
 		(others => 'Z');
 	
 	-- Decode function selects
@@ -185,11 +217,6 @@ begin
 	
 	-- Unused outputs
 	nINT2 <= 'Z';
-	
-	-- Unused SPI
-	SPI_SCLK <= '0';
-	SPI_MOSI <= '0';
-	SPI_nCS <= '0';
 	
 end architecture;
 

@@ -82,7 +82,7 @@ begin
 
 	write_cycle: process(CLOCK,nRESET)
 	begin
-		if nRESET = '0' then
+		if nRESET='0' then
 			configured <= '0';
 			base <= (others => '0');
 		elsif rising_edge(CLOCK) and ENABLE='1' and WR='1' and selected='1' then
