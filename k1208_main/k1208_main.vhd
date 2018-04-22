@@ -4,7 +4,7 @@
 -- 
 -- Create Date:    22:15:28 03/22/2018 
 -- Design Name: 
--- Module Name:    k1208_ram - rtl 
+-- Module Name:    k1208_main - rtl 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -21,7 +21,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity k1208_ram is
+entity k1208_main is
 port (
 	CLKCPU		:	in 		std_logic;
 	nRESET		:	in		std_logic;
@@ -73,7 +73,7 @@ port (
 	);
 end entity;
 
-architecture rtl of k1208_ram is
+architecture rtl of k1208_main is
 
 component autoconfig is
 generic (
