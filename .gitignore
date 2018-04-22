@@ -4,27 +4,37 @@
 *.bld
 *.cmd_log
 *.drc
+*.gyd
+*.jed
 *.ll
 *.lso
+*.mfd
 *.msd
 *.msk
 *.ncd
+*.nga
 *.ngc
 *.ngd
 *.ngr
 *.pad
 *.par
 *.pcf
+*.pnx
 *.prj
 *.ptwx
 *.rbb
 *.rbd
+*.rpt
 *.stx
 *.syr
+*.tim
+*.tspec
 *.twr
 *.twx
 *.unroutes
 *.ut
+*.vm6
+*.xml
 *.xpi
 *.xst
 *_bitgen.xwbt
@@ -54,6 +64,7 @@ xaw2verilog.log
 
 # project-wide generated files
 *.gise
+tmperr.err
 par_usage_statistics.html
 usage_statistics_webtalk.html
 webtalk.log
