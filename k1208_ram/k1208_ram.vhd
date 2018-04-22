@@ -48,11 +48,28 @@ port (
 	RAM_nRAS	:	out		std_logic_vector(1 downto 0);
 	RAM_nCAS	:	out		std_logic_vector(3 downto 0);
 	
-	-- IO/SPI
-	SPI_nCS		:	out		std_logic;
+	-- SD SPI
+	SD_nCS		:	out		std_logic;
+	SD_SCLK		:	out		std_logic;
+	SD_MOSI		:	out		std_logic;
+	SD_MISO		:	in		std_logic;
+	
+	-- NET/EXP SPI
+	SPI_nCS0	:	out		std_logic;
+	SPI_nCS1	:	out		std_logic;
 	SPI_SCLK	:	out		std_logic;
 	SPI_MOSI	:	out		std_logic;
-	SPI_MISO	:	in		std_logic
+	SPI_MISO	:	in		std_logic;
+	
+	-- NET
+	NET_nRESET	:	out		std_logic;
+	NET_nINT	:	in		std_logic;
+	
+	-- GPIO (header)
+	GPIO		:	inout	std_logic_vector(9 downto 0);
+	
+	-- 4MB/8MB jumper
+	n4MB		:	in		std_logic
 	);
 end entity;
 
@@ -156,7 +173,7 @@ begin
 			autoconf_sel, wr, a(6 downto 0), d_in(7 downto 4), d_out_z2_ram
 		);
 	
-	-- Instantiate autoconfig instance for IO function
+	-- Instantiate autoconfig instance for IO function (SPI/NET/GPIO)
 	autoconfig_io: autoconfig
 		generic map (
 			Z2_TYPE => X"c1", -- 64KB
@@ -183,9 +200,9 @@ begin
 		port map (
 			CLKCPU, nRESET,
 			io_sel, wr, a(3 downto 2), d_in, d_out_spi,
-			spi_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
+			spi_ncs_all, SD_SCLK, SD_MOSI, SD_MISO
 		);
-	SPI_nCS <= spi_ncs_all(0);
+	SD_nCS <= spi_ncs_all(0);
 	
 	-- Derive full address bus with holes filled
 	a <= AH & "0" & AM & "00000" & AL;
