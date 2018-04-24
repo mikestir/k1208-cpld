@@ -141,13 +141,16 @@ signal a			:	std_logic_vector(23 downto 0);
 signal d_in			:	std_logic_vector(7 downto 0);
 signal d_out_z2_ram	:	std_logic_vector(3 downto 0);
 signal d_out_z2_io	:	std_logic_vector(3 downto 0);
-signal d_out_spi	:	std_logic_vector(7 downto 0);
+signal d_out_spi1	:	std_logic_vector(7 downto 0);
+signal d_out_spi2	:	std_logic_vector(7 downto 0);
 signal rd			:	std_logic;
 signal wr			:	std_logic;
 
 -- Chip selects
 signal autoconf_sel	:	std_logic; -- E80000-E90000
 signal io_sel		:	std_logic; -- E90000-EA0000
+signal spi1_sel		:	std_logic; -- E90000-E9007F
+signal spi2_sel		:	std_logic; -- E91000-E9107F
 signal addr_valid	:	std_logic;
 
 -- Auto config
@@ -158,7 +161,8 @@ signal ram_sel		:	std_logic;
 signal ram_ready	:	std_logic;
 
 -- SPI
-signal spi_ncs_all	:	std_logic_vector(3 downto 0);
+signal spi1_ncs_all	:	std_logic_vector(3 downto 0);
+signal spi2_ncs_all	:	std_logic_vector(3 downto 0);
 begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
@@ -195,14 +199,26 @@ begin
 			RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
 		
-	-- Instantiate SPI controller
-	spi_inst: spi
+	-- Instantiate SD card SPI interface
+	spi1_inst: spi
 		port map (
 			CLKCPU, nRESET,
-			io_sel, wr, a(3 downto 2), d_in, d_out_spi,
-			spi_ncs_all, SD_SCLK, SD_MOSI, SD_MISO
+			spi1_sel, wr, a(3 downto 2), d_in, d_out_spi1,
+			spi1_ncs_all, SD_SCLK, SD_MOSI, SD_MISO
 		);
-	SD_nCS <= spi_ncs_all(0);
+	SD_nCS <= spi1_ncs_all(0);
+
+	-- Instantiate expansion SPI interface
+	spi2_inst: spi
+		port map (
+			CLKCPU, nRESET,
+			spi2_sel, wr, a(3 downto 2), d_in, d_out_spi2,
+			spi2_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
+		);
+	SPI_nCS0 <= spi2_ncs_all(0);
+	SPI_nCS1 <= spi2_ncs_all(1);
+	
+	NET_nRESET <= '1';
 	
 	-- Derive full address bus with holes filled
 	a <= AH & "0" & AM & "00000" & AL;
@@ -213,13 +229,16 @@ begin
 	d_in <= D;
 	D <= d_out_z2_ram & "1111" when rd='1' and autoconf_sel='1' and config_out="00" else
 		d_out_z2_io & "1111" when rd='1' and autoconf_sel='1' and config_out="01" else
-		d_out_spi when rd='1' and io_sel='1' else
+		d_out_spi1 when rd='1' and spi1_sel='1' else
+		d_out_spi2 when rd='1' and spi2_sel='1' else
 		(others => 'Z');
 	
 	-- Decode function selects
 	addr_valid <= nRESET and not nAS;
 	autoconf_sel <= '1' when A(23 downto 16)=X"E8" and addr_valid='1' else '0';
 	io_sel <= '1' when A(23 downto 16)=X"E9" and addr_valid='1' else '0';
+	spi1_sel <= io_sel and not A(12);
+	spi2_sel <= io_sel and A(12);
 	
 	-- nDSACK="10" for 8-bit cycles (IO) and "00" for 32-bit cycles (RAM)
 	nDSACK(0) <= '0' when autoconf_sel='1' or io_sel='1' or ram_ready='1' else 'Z';
