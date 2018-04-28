@@ -86,6 +86,9 @@ port (
 	CLOCK		:	in	std_logic;
 	nRESET		:	in	std_logic;
 	
+	-- Region size may be varied in the logic
+	SIZE		:	in	std_logic_vector(2 downto 0);
+	
 	CONFIG_IN	:	in	std_logic;
 	CONFIG_OUT	:	out	std_logic;
 	
@@ -154,6 +157,8 @@ signal spi2_sel		:	std_logic; -- E91000-E9107F
 signal addr_valid	:	std_logic;
 
 -- Auto config
+signal eight_meg	:	std_logic;
+signal ram_size		:	std_logic_vector(2 downto 0);
 signal config_out	:	std_logic_vector(1 downto 0);
 
 -- RAM timing
@@ -167,24 +172,26 @@ begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
 		generic map (
-			--Z2_TYPE => X"e0", -- 8MB
-			Z2_TYPE => X"e7", -- 4MB
+			Z2_TYPE => X"e8", -- RAM board, next function is related
 			Z2_FLAGS => X"c0"
 		)
 		port map (
 			CLKCPU, nRESET,
+			ram_size,
 			'1', config_out(0),
 			autoconf_sel, wr, a(6 downto 0), d_in(7 downto 4), d_out_z2_ram
 		);
+	ram_size <= "000" when eight_meg='1' else "111"; -- Select 4MB or 8MB fastmem region
 	
 	-- Instantiate autoconfig instance for IO function (SPI/NET/GPIO)
 	autoconfig_io: autoconfig
 		generic map (
-			Z2_TYPE => X"c1", -- 64KB
+			Z2_TYPE => X"c1", -- IO board
 			Z2_FLAGS => X"40"
 		)
 		port map (
 			CLKCPU, nRESET,
+			"001", -- 64 KB
 			config_out(0), config_out(1),
 			autoconf_sel, wr, a(6 downto 0), d_in(7 downto 4), d_out_z2_io
 		);
@@ -194,7 +201,7 @@ begin
 		port map (
 			CLKCPU, nRESET,
 			R_nW, nAS, A, SIZ,
-			'0', -- 0 = 4MB, 1 = 8MB
+			eight_meg,
 			ram_sel, ram_ready,
 			RAM_MUX, RAM_A, RAM_nOE, RAM_nRAS, RAM_nCAS
 		);
@@ -255,5 +262,15 @@ begin
 	
 	-- Unused outputs
 	nINT2 <= 'Z';
+	
+	-- Register 4MB/8MB jumper and lock after autoconfig has started
+	process(CLKCPU, nRESET)
+	begin
+		if nRESET='0' then
+			eight_meg <= '0';
+		elsif rising_edge(CLKCPU) and config_out="00" then
+			eight_meg <= n4MB;
+		end if;
+	end process;
 end architecture;
 

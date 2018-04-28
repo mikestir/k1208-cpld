@@ -32,6 +32,9 @@ port (
 	CLOCK		:	in	std_logic;
 	nRESET		:	in	std_logic;
 	
+	-- Region size may be varied in the logic
+	SIZE		:	in	std_logic_vector(2 downto 0);
+	
 	CONFIG_IN	:	in	std_logic;
 	CONFIG_OUT	:	out	std_logic;
 	
@@ -65,7 +68,7 @@ begin
 	with "0" & A select
 		read_reg <=
 			z2_type_val(7 downto 4) when X"00", -- type
-			z2_type_val(3 downto 0) when X"02",
+			z2_type_val(3 downto 3) & SIZE when X"02",
 			z2_prod_val(7 downto 4) when X"04", -- product
 			z2_prod_val(3 downto 0) when X"06",
 			z2_flags_val(7 downto 4) when X"08", -- flags
@@ -81,14 +84,15 @@ begin
 	
 	-- Register data out
 	-- (doing this or not is a balance between product terms and overall macrocell count)
-	read_cycle: process(CLOCK,nRESET)
-	begin
-		if nRESET='0' then
-			D_OUT <= (others => '0');
-		elsif rising_edge(CLOCK) then
-			D_OUT <= read_reg;
-		end if;
-	end process;
+--	read_cycle: process(CLOCK,nRESET)
+--	begin
+--		if nRESET='0' then
+--			D_OUT <= (others => '0');
+--		elsif rising_edge(CLOCK) then
+--			D_OUT <= read_reg;
+--		end if;
+--	end process;
+	D_OUT <= read_reg;
 
 	write_cycle: process(CLOCK,nRESET)
 	begin
