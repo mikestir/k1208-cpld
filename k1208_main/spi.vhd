@@ -44,12 +44,12 @@ architecture rtl of spi is
 -- Control register
 signal cpha		:	std_logic;		-- 0 = data captured on first edge, 1 = data captured on second edge
 signal cpol		:	std_logic;		-- 0 = clock idles low, 1 = clock idles high
+signal slow		:	std_logic;		-- 0 = 7.1 MHz, 1 = 222 kHz (for SD card init) (a full programmable divider wouldn't fit)
 signal cs		:	std_logic_vector(3 downto 0);
 -- Status register
 signal busy		:	std_logic;
--- Clock divider
-signal clkdiv	:	unsigned(7 downto 0);
-signal clkdiv_counter	:	unsigned(7 downto 0);
+-- Clock divider (/32 for slow mode)
+signal clkcnt	:	unsigned(4 downto 0);
 -- Bit counter
 signal bitcnt	:	unsigned(3 downto 0);
 -- Data
@@ -72,9 +72,8 @@ begin
 	-- Read mux
 	with "00" & A select
 		regout <=
-			cs & "00" & cpol & cpha 	when X"00",	-- CR
+			cs & "0" & slow & cpol & cpha 	when X"00",	-- CR
 			"0000000" & busy			when X"01",	-- SR
---			std_logic_vector(clkdiv)	when X"02", -- CLKDIV
 			shiftreg					when X"03", -- DR
 			X"00"						when others;
 
@@ -98,8 +97,8 @@ begin
 			-- Default all control registers
 			cpha <= '0';
 			cpol <= '0';
+			slow <= '0';
 			cs <= (others => '0');
---			clkdiv <= (others => '0');
 			shiftreg <= (others => '0');
 			
 			-- Default all state
@@ -137,13 +136,11 @@ begin
 							-- CR
 							cpha <= D_IN(0);
 							cpol <= D_IN(1);
+							slow <= D_IN(2);
 							cs <= D_IN(7 downto 4);
 						when X"1" =>
 							-- SR (read-only)
 							null;
-						when X"2" =>
-							-- CLKDIV
---							clkdiv <= unsigned(D_IN);
 						when X"3" =>
 							-- DR
 							if busy='0' then
@@ -160,22 +157,20 @@ begin
 		end if;
 	end process;
 	
-	-- Clock divider
+	-- Clock divider (for slow mode)
 	process(CLOCK, nRESET)
 	begin
 		if nRESET='0' then
-			clken <= '1';
---			clken <= '0';
---			clkdiv_counter <= (others => '0');
+			clken <= '0';
+			clkcnt <= (others => '0');
 		elsif rising_edge(CLOCK) then
-			clken <= '1';
---			clken <= '0';
---			clkdiv_counter <= clkdiv_counter + 1;
---			
---			if clkdiv_counter = clkdiv then
---				clkdiv_counter <= (others => '0');
---				clken <= '1';
---			end if;
+			clken <= not slow;
+			
+			-- /32 if in slow mode
+			clkcnt <= clkcnt + 1;
+			if clkcnt=0 then
+				clken <= '1';
+			end if;
 		end if;
 	end process;
 
