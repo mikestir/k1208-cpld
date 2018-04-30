@@ -31,6 +31,7 @@ port (
 	A			:	in		std_logic_vector(1 downto 0);
 	D_IN		:	in		std_logic_vector(7 downto 0);
 	D_OUT		:	out		std_logic_vector(7 downto 0);
+	BUSY_OUT	:	out		std_logic;
 
 	SPI_nCS		:	out		std_logic_vector(3 downto 0);
 	SPI_SCLK	:	out		std_logic;
@@ -55,7 +56,7 @@ signal bitcnt	:	unsigned(3 downto 0);
 signal shiftreg	:	std_logic_vector(7 downto 0);
 
 signal clken	:	std_logic;
-signal read_reg	:	std_logic_vector(7 downto 0);
+signal regout	:	std_logic_vector(7 downto 0);
 
 -- Port signals
 signal mosi		:	std_logic;
@@ -70,7 +71,7 @@ begin
 	
 	-- Read mux
 	with "00" & A select
-		read_reg <=
+		regout <=
 			cs & "00" & cpol & cpha 	when X"00",	-- CR
 			"0000000" & busy			when X"01",	-- SR
 --			std_logic_vector(clkdiv)	when X"02", -- CLKDIV
@@ -84,10 +85,11 @@ begin
 --		if nRESET='0' then
 --			D_OUT <= (others => '0');
 --		elsif rising_edge(CLOCK) then
---			D_OUT <= read_reg;
+--			D_OUT <= regout;
 --		end if;
 --	end process;
-	D_OUT <= read_reg;
+	D_OUT <= regout;
+	BUSY_OUT <= busy; -- Expose busy flag to enable wait-states to be inserted instead of polling SR
 
 	-- Write path and IO
 	write_cycle: process(CLOCK, nRESET)
@@ -107,7 +109,7 @@ begin
 			-- Outputs to port
 			clkout <= '0';
 			mosi <= '0';
-		elsif rising_edge(CLOCK) then
+		elsif rising_edge(CLOCK) then		
 			-- SPI bus cycle when clock enable asserted
 			if clken='1' then
 				if busy='1' then
@@ -128,30 +130,32 @@ begin
 			end if;
 			
 			-- Register writes
-			if ENABLE='1' and WR='1' then
-				case "00" & A is
-					when X"00" =>
-						-- CR
-						cpha <= D_IN(0);
-						cpol <= D_IN(1);
-						cs <= D_IN(7 downto 4);
-					when X"01" =>
-						-- SR (read-only)
-						null;
-					when X"02" =>
-						-- CLKDIV
---						clkdiv <= unsigned(D_IN);
-					when X"03" =>
-						-- DR
-						if busy='0' then
-							-- Write to txreg initiates transfer
-							shiftreg <= D_IN;
-							busy <= '1';
-							bitcnt <= (others => '0');
-						end if;
-					when others =>
-						null;
-				end case;
+			if ENABLE='1' then
+				if WR='1' then 
+					case "00" & A is
+						when X"0" =>
+							-- CR
+							cpha <= D_IN(0);
+							cpol <= D_IN(1);
+							cs <= D_IN(7 downto 4);
+						when X"1" =>
+							-- SR (read-only)
+							null;
+						when X"2" =>
+							-- CLKDIV
+--							clkdiv <= unsigned(D_IN);
+						when X"3" =>
+							-- DR
+							if busy='0' then
+								-- Write to txreg initiates transfer (does not ack bus cycle until SPI is complete)
+								shiftreg <= D_IN;
+								busy <= '1';
+								bitcnt <= (others => '0');
+							end if;
+						when others =>
+							null;
+					end case;
+				end if;
 			end if;
 		end if;
 	end process;

@@ -132,6 +132,7 @@ port (
 	A			:	in		std_logic_vector(1 downto 0);
 	D_IN		:	in		std_logic_vector(7 downto 0);
 	D_OUT		:	out		std_logic_vector(7 downto 0);
+	BUSY_OUT	:	out		std_logic;
 
 	SPI_nCS		:	out		std_logic_vector(3 downto 0);
 	SPI_SCLK	:	out		std_logic;
@@ -166,6 +167,8 @@ signal ram_sel		:	std_logic;
 signal ram_ready	:	std_logic;
 
 -- SPI
+signal spi1_busy	:	std_logic;
+signal spi2_busy	:	std_logic;
 signal spi1_ncs_all	:	std_logic_vector(3 downto 0);
 signal spi2_ncs_all	:	std_logic_vector(3 downto 0);
 begin
@@ -210,7 +213,7 @@ begin
 	spi1_inst: spi
 		port map (
 			CLKCPU, nRESET,
-			spi1_sel, wr, a(3 downto 2), d_in, d_out_spi1,
+			spi1_sel, wr, a(3 downto 2), d_in, d_out_spi1, spi1_busy,
 			spi1_ncs_all, SD_SCLK, SD_MOSI, SD_MISO
 		);
 	SD_nCS <= spi1_ncs_all(0);
@@ -219,7 +222,7 @@ begin
 	spi2_inst: spi
 		port map (
 			CLKCPU, nRESET,
-			spi2_sel, wr, a(3 downto 2), d_in, d_out_spi2,
+			spi2_sel, wr, a(3 downto 2), d_in, d_out_spi2, spi2_busy,
 			spi2_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
 		);
 	SPI_nCS0 <= spi2_ncs_all(0);
@@ -248,19 +251,17 @@ begin
 	spi2_sel <= io_sel and A(12);
 	
 	-- nDSACK="10" for 8-bit cycles (IO) and "00" for 32-bit cycles (RAM)
-	nDSACK(0) <= '0' when autoconf_sel='1' or io_sel='1' or ram_ready='1' else 'Z';
+	nDSACK(0) <= '0' when autoconf_sel='1' or (spi1_sel='1' and spi1_busy='0') or (spi2_sel='1' and spi2_busy='0') or ram_ready='1' else 'Z';
 	nDSACK(1) <= '0' when ram_ready='1' else 'Z';
 
 	-- /OVR needs to be asserted prior to the CPU asserting /AS
 	-- (see http://www.ianstedman.co.uk/downloads/A1200FuncSpec.txt)
-	-- But maybe it isn't needed in expansion card space as it seems
-	-- to work fine without it.
-	-- This was tested by inserting dummy delays to hold off DSACK assertion in RAM and
-	-- observing that the machine performance reduced.  Also, not asserting DSACK does cause
-	-- the machine to hang as would be expected.
-	nOVR <= 'Z';
+	-- This prevents the Amiga from internally generating DSACK signals for
+	-- the memory areas that we are managing.
+	nOVR <= '0' when autoconf_sel='1' or io_sel='1' or ram_sel='1' else 'Z';
 	
-	-- Unused outputs
+	-- Interrupt output connected directly to network interface for now
+	--nINT2 <= '0' when NET_nINT = '0' else 'Z';
 	nINT2 <= 'Z';
 	
 	-- Register 4MB/8MB jumper and lock after autoconfig has started
