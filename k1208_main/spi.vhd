@@ -31,9 +31,14 @@ port (
 	A			:	in		std_logic_vector(1 downto 0);
 	D_IN		:	in		std_logic_vector(7 downto 0);
 	D_OUT		:	out		std_logic_vector(7 downto 0);
-	BUSY_OUT	:	out		std_logic;
+	BUSY_OUT	:	out		std_logic;	-- Busy output to DSACK for wait-state insertion (active high)
+	
+	-- Aux interrupt routing
+	nEXT_INT	:	in		std_logic;	-- External interrupt signal (low-level 
+	INT_OUT		:	out		std_logic;	-- Interrupt output (active high)
 
-	SPI_nCS		:	out		std_logic_vector(3 downto 0);
+	-- SPI port
+	SPI_nCS		:	out		std_logic_vector(1 downto 0);
 	SPI_SCLK	:	out		std_logic;
 	SPI_MOSI	:	out		std_logic;
 	SPI_MISO	:	in		std_logic
@@ -45,7 +50,8 @@ architecture rtl of spi is
 signal cpha		:	std_logic;		-- 0 = data captured on first edge, 1 = data captured on second edge
 signal cpol		:	std_logic;		-- 0 = clock idles low, 1 = clock idles high
 signal slow		:	std_logic;		-- 0 = 7.1 MHz, 1 = 222 kHz (for SD card init) (a full programmable divider wouldn't fit)
-signal cs		:	std_logic_vector(3 downto 0);
+signal cs		:	std_logic_vector(1 downto 0);
+signal intena	:	std_logic;		-- 0 = external interrupt disabled, 1 = external interrupt routed to INT_OUT
 -- Status register
 signal busy		:	std_logic;
 -- Clock divider (/32 for slow mode)
@@ -72,7 +78,7 @@ begin
 	-- Read mux
 	with "00" & A select
 		regout <=
-			cs & "0" & slow & cpol & cpha 	when X"00",	-- CR
+			"0" & intena & cs & "0" & slow & cpol & cpha 	when X"00",	-- CR
 			"0000000" & busy			when X"01",	-- SR
 			shiftreg					when X"03", -- DR
 			X"00"						when others;
@@ -89,6 +95,7 @@ begin
 --	end process;
 	D_OUT <= regout;
 	BUSY_OUT <= busy; -- Expose busy flag to enable wait-states to be inserted instead of polling SR
+	INT_OUT <= intena and not nEXT_INT;
 
 	-- Write path and IO
 	write_cycle: process(CLOCK, nRESET)
@@ -137,7 +144,8 @@ begin
 							cpha <= D_IN(0);
 							cpol <= D_IN(1);
 							slow <= D_IN(2);
-							cs <= D_IN(7 downto 4);
+							cs <= D_IN(5 downto 4);
+							intena <= D_IN(6);
 						when X"1" =>
 							-- SR (read-only)
 							null;

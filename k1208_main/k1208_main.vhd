@@ -132,9 +132,14 @@ port (
 	A			:	in		std_logic_vector(1 downto 0);
 	D_IN		:	in		std_logic_vector(7 downto 0);
 	D_OUT		:	out		std_logic_vector(7 downto 0);
-	BUSY_OUT	:	out		std_logic;
+	BUSY_OUT	:	out		std_logic;	-- Busy output to DSACK for wait-state insertion (active high)
 
-	SPI_nCS		:	out		std_logic_vector(3 downto 0);
+	-- Aux interrupt routing
+	nEXT_INT	:	in		std_logic;	-- External interrupt signal (low-level 
+	INT_OUT		:	out		std_logic;	-- Interrupt output (active high)
+
+	-- SPI port
+	SPI_nCS		:	out		std_logic_vector(1 downto 0);
 	SPI_SCLK	:	out		std_logic;
 	SPI_MOSI	:	out		std_logic;
 	SPI_MISO	:	in		std_logic
@@ -169,8 +174,9 @@ signal ram_ready	:	std_logic;
 -- SPI
 signal spi1_busy	:	std_logic;
 signal spi2_busy	:	std_logic;
-signal spi1_ncs_all	:	std_logic_vector(3 downto 0);
-signal spi2_ncs_all	:	std_logic_vector(3 downto 0);
+signal spi1_ncs_all	:	std_logic_vector(1 downto 0);
+signal spi2_ncs_all	:	std_logic_vector(1 downto 0);
+signal spi2_int		:	std_logic;
 begin
 	-- Instantiate autoconfig instance for RAM function
 	autoconfig_ram: autoconfig
@@ -213,7 +219,8 @@ begin
 	spi1_inst: spi
 		port map (
 			CLKCPU, nRESET,
-			spi1_sel, wr, a(3 downto 2), d_in, d_out_spi1, spi1_busy,
+			spi1_sel, wr, a(3 downto 2), d_in, d_out_spi1, spi1_busy, 
+			'1', open,
 			spi1_ncs_all, SD_SCLK, SD_MOSI, SD_MISO
 		);
 	SD_nCS <= spi1_ncs_all(0);
@@ -222,7 +229,8 @@ begin
 	spi2_inst: spi
 		port map (
 			CLKCPU, nRESET,
-			spi2_sel, wr, a(3 downto 2), d_in, d_out_spi2, spi2_busy,
+			spi2_sel, wr, a(3 downto 2), d_in, d_out_spi2, spi2_busy, 
+			NET_nINT, spi2_int,
 			spi2_ncs_all, SPI_SCLK, SPI_MOSI, SPI_MISO
 		);
 	SPI_nCS0 <= spi2_ncs_all(0);
@@ -260,9 +268,8 @@ begin
 	-- the memory areas that we are managing.
 	nOVR <= '0' when autoconf_sel='1' or io_sel='1' or ram_sel='1' else 'Z';
 	
-	-- Interrupt output connected directly to network interface for now
-	--nINT2 <= '0' when NET_nINT = '0' else 'Z';
-	nINT2 <= 'Z';
+	-- External interrupt from network interface gated to EXT2
+	nINT2 <= '0' when spi2_int='1' else 'Z';
 	
 	-- Register 4MB/8MB jumper and lock after autoconfig has started
 	process(CLKCPU, nRESET)
