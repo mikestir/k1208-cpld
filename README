@@ -1,0 +1,12 @@
+K1208 CPLD logic
+
+(C) 2018 Mike Stirling
+
+This is a VHDL implementation of the logic for the K1208 Amiga A1200
+FastMem and SPI board.  It implements the following functionality:
+
+- 4MB or 8MB autoconfig fastmem (jumper selectable)
+- 2 independent autoconfig SPI ports
+- Interrupt gating to INT2 for use by SPI devices
+
+Build using Xilinx ISE 14.7
